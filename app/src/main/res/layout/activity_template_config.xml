@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="模板配置"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:padding="16dp"/>
+
+    <RadioGroup android:id="@+id/rg_template_type" android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content">
+        <RadioButton android:id="@+id/rb_buy" android:text="买入模板" android:checked="true" android:layout_weight="1"/>
+        <RadioButton android:id="@+id/rb_sell" android:text="卖出模板" android:layout_weight="1"/>
+    </RadioGroup>
+
+    <EditText
+        android:id="@+id/et_template_content"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:inputType="textMultiLine"
+        android:gravity="top"
+        android:padding="12dp"
+        android:background="@drawable/edittext_border"
+        android:layout_marginTop="16dp"/>
+
+    <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp">
+        <Button android:id="@+id/reset_btn" android:text="恢复默认" android:layout_weight="1" android:layout_height="48dp"/>
+        <Button android:id="@+id/save_btn" android:text="@string/save" android:layout_weight="1" android:layout_height="48dp" android:background="@color/green_500" android:textColor="@color/white" android:layout_marginLeft="16dp"/>
+        <Button android:id="@+id/back_btn" android:text="@string/cancel" android:layout_weight="1" android:layout_height="48dp" android:layout_marginLeft="16dp"/>
+    </LinearLayout>
+
+</LinearLayout>

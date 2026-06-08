@@ -1,0 +1,24 @@
+<resources>
+    <string name="app_name">股票交易审核</string>
+    <string name="buy_review">买入审核</string>
+    <string name="sell_review">卖出审核</string>
+    <string name="records">交易记录</string>
+    <string name="template">模板配置</string>
+    <string name="submit">提交审核</string>
+    <string name="cancel">取消</string>
+    <string name="save">保存</string>
+    <string name="edit">编辑</string>
+    <string name="delete">删除</string>
+    <string name="ok">确定</string>
+    <string name="warning">警告</string>
+    <string name="fill_all">请填写所有必填项</string>
+    <string name="emotion_check_fail">情绪自查未通过，取消交易</string>
+    <string name="position_limit_exceeded">仓位超限，取消交易</string>
+    <string name="record_saved">记录已保存</string>
+    <string name="record_deleted">记录已删除</string>
+    <string name="effective">已生效</string>
+    <string name="not_effective">未生效</string>
+    <string name="effective_after">1小时后生效</string>
+    <string name="today">今天</string>
+    <string name="yesterday">昨天</string>
+</resources>

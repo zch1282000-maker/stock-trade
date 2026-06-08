@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@drawable/edittext_border"
+    android:layout_margin="8dp">
+
+    <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content">
+        <TextView android:id="@+id/tv_type" android:textSize="16sp" android:textStyle="bold" android:textColor="@color/purple_500"/>
+        <TextView android:id="@+id/tv_status" android:textSize="12sp" android:layout_marginLeft="16dp" android:padding="4dp" android:background="@color/gray_300" android:borderRadius="4dp"/>
+    </LinearLayout>
+
+    <TextView android:id="@+id/tv_stock" android:textSize="14sp" android:layout_marginTop="8dp"/>
+    <TextView android:id="@+id/tv_time" android:textSize="12sp" android:textColor="@color/gray_600" android:layout_marginTop="4dp"/>
+    <TextView android:id="@+id/tv_volatility" android:textSize="14sp" android:textColor="@color/orange_500" android:layout_marginTop="4dp"/>
+    <TextView android:id="@+id/tv_conclusion" android:textSize="14sp" android:textColor="@color/green_500" android:layout_marginTop="8dp"/>
+
+    <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp">
+        <Button android:id="@+id/btn_view" android:text="查看详情" android:layout_weight="1" android:background="@color/purple_500" android:textColor="@color/white" android:layout_height="40dp"/>
+        <Button android:id="@+id/btn_review" android:text="审核生效" android:layout_weight="1" android:layout_marginLeft="8dp" android:background="@color/green_500" android:textColor="@color/white" android:layout_height="40dp"/>
+        <Button android:id="@+id/btn_void" android:text="作废" android:layout_weight="1" android:layout_marginLeft="8dp" android:background="@color/orange_500" android:textColor="@color/white" android:layout_height="40dp"/>
+        <Button android:id="@+id/btn_delete" android:text="删除" android:layout_weight="1" android:layout_marginLeft="8dp" android:background="@color/red_500" android:textColor="@color/white" android:layout_height="40dp"/>
+    </LinearLayout>
+
+</LinearLayout>

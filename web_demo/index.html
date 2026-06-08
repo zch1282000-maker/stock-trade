@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>股票交易审核系统</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', sans-serif; background: #f5f5f5; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; }
+        .header h1 { font-size: 24px; }
+        .main { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
+        .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 30px; }
+        .menu-btn { padding: 30px; border-radius: 12px; color: white; text-align: center; cursor: pointer; transition: transform 0.2s; }
+        .menu-btn:hover { transform: translateY(-5px); }
+        .menu-btn.buy { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+        .menu-btn.sell { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .menu-btn.records { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .menu-btn.template { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .menu-btn span { font-size: 20px; font-weight: bold; }
+        .form-container { display: none; background: white; border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .section-title { font-size: 16px; font-weight: bold; color: #333; margin: 20px 0 10px; padding-bottom: 8px; border-bottom: 2px solid #667eea; }
+        .form-row { margin: 12px 0; }
+        .form-label { display: block; font-size: 14px; color: #666; margin-bottom: 6px; }
+        .form-input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+        .form-row.inline { display: flex; gap: 15px; }
+        .form-row.inline .form-input { flex: 1; }
+        .radio-group, .checkbox-group { display: flex; flex-wrap: wrap; gap: 15px; }
+        .radio-item, .checkbox-item { display: flex; align-items: center; gap: 6px; }
+        .btn-group { display: flex; gap: 15px; margin-top: 24px; }
+        .btn { flex: 1; padding: 12px; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; }
+        .btn.submit { background: #28a745; color: white; }
+        .btn.cancel { background: #6c757d; color: white; }
+        .btn:hover { opacity: 0.9; }
+        .records-list { display: none; }
+        .record-item { background: white; border-radius: 8px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .record-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .record-type { font-weight: bold; color: #667eea; }
+        .record-status { font-size: 12px; padding: 4px 8px; border-radius: 12px; }
+        .record-status.pending { background: #fff3cd; color: #856404; }
+        .record-status.effective { background: #d4edda; color: #155724; }
+        .record-status.voided { background: #f8d7da; color: #721c24; }
+        .record-stock { font-size: 14px; color: #333; }
+        .record-time { font-size: 12px; color: #999; }
+        .record-conclusion { font-size: 14px; color: #dc3545; margin-top: 8px; }
+        .record-actions { margin-top: 12px; display: flex; gap: 10px; }
+        .record-btn { padding: 6px 12px; border: none; border-radius: 4px; font-size: 12px; cursor: pointer; }
+        .record-btn.view { background: #007bff; color: white; }
+        .record-btn.review { background: #28a745; color: white; }
+        .record-btn.void { background: #6c757d; color: white; }
+        .record-btn.delete { background: #dc3545; color: white; }
+        .record-btn:disabled { background: #ccc; cursor: not-allowed; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: white; border-radius: 12px; padding: 24px; max-width: 90%; max-height: 80%; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .modal-title { font-size: 18px; font-weight: bold; }
+        .modal-close { font-size: 24px; cursor: pointer; color: #999; }
+        .modal-content pre { white-space: pre-wrap; word-break: break-all; font-family: inherit; font-size: 14px; line-height: 1.6; }
+        .template-container { display: none; }
+        .template-tabs { display: flex; gap: 10px; margin-bottom: 15px; }
+        .template-tab { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; background: #eee; }
+        .template-tab.active { background: #667eea; color: white; }
+        .template-textarea { width: 100%; height: 400px; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-family: monospace; font-size: 14px; }
+        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 12px 24px; border-radius: 6px; display: none; z-index: 2000; }
+        .required { color: #dc3545; }
+        .calculated-value { background: #e8f5e9; color: #155724; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>股票交易审核系统</h1>
+    </div>
+    
+    <div class="main">
+        <div class="menu-grid">
+            <div class="menu-btn buy" onclick="showBuyForm()">
+                <span>买入审核</span>
+            </div>
+            <div class="menu-btn sell" onclick="showSellForm()">
+                <span>卖出审核</span>
+            </div>
+            <div class="menu-btn records" onclick="showRecords()">
+                <span>交易记录</span>
+            </div>
+            <div class="menu-btn template" onclick="showTemplate()">
+                <span>模板配置</span>
+            </div>
+            <div class="menu-btn" style="background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%); display: none;" onclick="simulateTimePass()">
+                <span>模拟60分钟后</span>
+            </div>
+        </div>
+
+        <!-- 买入审核表单 -->
+        <div class="form-container" id="buy-form">
+            <h2 style="color: #333; margin-bottom: 20px;">股票交易下单审核表（买入/加仓专用）</h2>
+            
+            <div class="section-title">一、基础信息</div>
+            <div class="form-row inline">
+                <div>
+                    <label class="form-label">1. 标的名称</label>
+                    <input type="text" class="form-input" id="buy-stock-name" placeholder="请输入股票名称">
+                </div>
+            </div>
+            <div class="form-row">
+                <label class="form-label">2. 当前总账户总资产</label>
+                <input type="number" class="form-input" id="buy-total-assets" placeholder="请输入金额" oninput="calculatePositionRatio()">
+            </div>
+            <div class="form-row">
+                <label class="form-label">3. 本次买入金额</label>
+                <input type="number" class="form-input" id="buy-amount" placeholder="请输入金额" oninput="calculatePositionRatio()">
+            </div>
+            <div class="form-row">
+                <label class="form-label">4. 本次买入后，该个股占总仓位比例（≤15%）<span class="required">*</span></label>
+                <input type="text" class="form-input" id="buy-position-ratio" placeholder="自动计算" readonly>
+            </div>
+            <div class="form-row">
+                <label class="form-label">5. 股票波动率（%）<span class="required">*</span></label>
+                <input type="number" step="0.1" class="form-input" id="buy-volatility" placeholder="请输入波动率" oninput="calculateVolatilityValue()">
+            </div>
+            <div class="form-row">
+                <label class="form-label">6. 最大波动价值<span class="required">*</span></label>
+                <input type="text" class="form-input" id="buy-volatility-value" placeholder="自动计算" readonly>
+            </div>
+            <div class="form-row">
+                <label class="form-label">7. 本次操作类型</label>
+                <div class="radio-group">
+                    <label class="radio-item"><input type="radio" name="buy-operation" value="首次建仓"> 首次建仓</label>
+                    <label class="radio-item"><input type="radio" name="buy-operation" value="加仓"> 加仓</label>
+                    <label class="radio-item"><input type="radio" name="buy-operation" value="做T"> 做T</label>
+                </div>
+            </div>
+
+            <div class="section-title">二、买入核心逻辑</div>
+            <div class="form-row">
+                <label class="form-label">1. 支撑上涨3条核心理由</label>
+                <input type="text" class="form-input" id="buy-reason1" placeholder="①">
+                <input type="text" class="form-input" id="buy-reason2" placeholder="②">
+                <input type="text" class="form-input" id="buy-reason3" placeholder="③">
+            </div>
+            <div class="form-row">
+                <label class="form-label">2. 本次持仓周期规划</label>
+                <div class="radio-group">
+                    <label class="radio-item"><input type="radio" name="buy-cycle" value="短线"> 短线（1个月内）</label>
+                    <label class="radio-item"><input type="radio" name="buy-cycle" value="中线"> 中线（1-6个月）</label>
+                    <label class="radio-item"><input type="radio" name="buy-cycle" value="长线"> 长线（1年以上）</label>
+                </div>
+            </div>
+
+            <div class="section-title">三、风险测算</div>
+            <div class="form-row">
+                <label class="form-label">1. 单只个股最大容忍亏损比例</label>
+                <input type="text" class="form-input" id="buy-max-loss" placeholder="请输入百分比">
+            </div>
+            <div class="form-row">
+                <label class="form-label">2. 硬性止损价格</label>
+                <input type="text" class="form-input" id="buy-stop-price" placeholder="请输入价格（元）">
+            </div>
+            <div class="form-row">
+                <label class="form-label">3. 3个潜在重大利空</label>
+                <input type="text" class="form-input" id="buy-risk1" placeholder="①">
+                <input type="text" class="form-input" id="buy-risk2" placeholder="②">
+                <input type="text" class="form-input" id="buy-risk3" placeholder="③">
+            </div>
+            <div class="form-row">
+                <label class="form-label">4. 极端情况评估：如果跌到止损位，这笔亏损会不会影响日常生活、睡眠心态？</label>
+                <div class="radio-group">
+                    <label class="radio-item"><input type="radio" name="buy-extreme" value="会"> 会</label>
+                    <label class="radio-item"><input type="radio" name="buy-extreme" value="不会"> 不会</label>
+                </div>
+            </div>
+
+            <div class="section-title">四、仓位约束</div>
+            <div class="form-row">
+                <label class="form-label">3. 账户整体浮亏超8%，是否执行加仓？</label>
+                <div class="radio-group">
+                    <label class="radio-item"><input type="radio" name="buy-position-add" value="是"> 是</label>
+                    <label class="radio-item"><input type="radio" name="buy-position-add" value="否"> 否</label>
+                </div>
+            </div>
+
+            <div class="section-title">五、止盈规划</div>
+            <div class="form-row inline">
+                <div>
+                    <label class="form-label">1. 第一止盈目标价</label>
+                    <input type="text" class="form-input" id="buy-first-target" placeholder="价格">
+                </div>
+                <div>
+                    <label class="form-label">到达减仓</label>
+                    <input type="text" class="form-input" id="buy-first-ratio" placeholder="百分比">
+                </div>
+            </div>
+            <div class="form-row">
+                <label class="form-label">2. 第二止盈目标价（到达清仓剩余筹码）</label>
+                <input type="text" class="form-input" id="buy-second-target" placeholder="请输入价格">
+            </div>
+            <div class="form-row">
+                <label class="form-label">3. 中途上涨后心态失控追高预案</label>
+                <input type="text" class="form-input" id="buy-chase-plan" placeholder="请输入预案内容">
+            </div>
+
+            <div class="section-title">六、情绪自查 <span class="required">*必须确认</span></div>
+            <div class="checkbox-group">
+                <label class="checkbox-item"><input type="checkbox" name="buy-emotion" value="1" checked> 刚大涨，眼红追涨</label>
+                <label class="checkbox-item"><input type="checkbox" name="buy-emotion" value="2" checked> 连续亏损，急于回本加仓摊薄</label>
+                <label class="checkbox-item"><input type="checkbox" name="buy-emotion" value="3" checked> 刷短视频、股吧、群聊听别人推荐</label>
+                <label class="checkbox-item"><input type="checkbox" name="buy-emotion" value="4" checked> 熬夜、烦躁、焦虑、心态浮躁时操作</label>
+                <label class="checkbox-item"><input type="checkbox" name="buy-emotion" value="5" checked> 短期连续盈利，自我膨胀想重仓梭哈</label>
+                <label class="checkbox-item"><input type="checkbox" name="buy-emotion" value="6" checked> 急于快速赚钱，追求短期暴利</label>
+                <label class="checkbox-item"><input type="checkbox" name="buy-emotion" value="7" checked> 害怕踏空，不分析逻辑直接买入</label>
+            </div>
+            <div class="form-row" style="margin-top: 16px;">
+                <label class="form-label"><span class="required">*</span>确认以上情绪自查项我均已仔细阅读并确认无问题：</label>
+                <div class="radio-group">
+                    <label class="radio-item"><input type="radio" name="buy-emotion-confirm" value="确认无问题"> 确认无问题</label>
+                    <label class="radio-item"><input type="radio" name="buy-emotion-confirm" value="有问题需重新评估"> 有问题需重新评估</label>
+                </div>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn submit" onclick="submitBuyForm()">提交审核</button>
+                <button class="btn cancel" onclick="hideAll()">取消</button>
+            </div>
+        </div>
+
+        <!-- 卖出审核表单 -->
+        <div class="form-container" id="sell-form">
+            <h2 style="color: #333; margin-bottom: 20px;">股票卖出/割肉专用审核模板</h2>
+            
+            <div class="section-title">一、基础信息</div>
+            <div class="form-row inline">
+                <div>
+                    <label class="form-label">1. 标的名称</label>
+                    <input type="text" class="form-input" id="sell-stock-name" placeholder="请输入股票名称">
+                </div>
+            </div>
+            <div class="form-row">
+                <label class="form-label">2. 当前持仓成本</label>
+                <input type="text" class="form-input" id="sell-cost" placeholder="请输入成本价">
+            </div>
+            <div class="form-row">
+                <label class="form-label">3. 当前浮盈/浮亏</label>
+                <input type="text" class="form-input" id="sell-profit-loss" placeholder="请输入金额或百分比">
+            </div>
+            <div class="form-row">
+                <label class="form-label">4. 卖出比例</label>
+                <div class="radio-group">
+                    <label class="radio-item"><input type="radio" name="sell-ratio" value="部分减仓"> 部分减仓</label>
+                    <label class="radio-item"><input type="radio" name="sell-ratio" value="全部清仓"> 全部清仓</label>
+                </div>
+            </div>
+
+            <div class="section-title">二、卖出核心依据</div>
+            <div class="form-row">
+                <label class="form-label">情况1：止盈卖出</label>
+                <div class="radio-group">
+                    <label class="radio-item"><input type="radio" name="sell-profit-target" value="是"> 是否到达预设止盈目标：是</label>
+                    <label class="radio-item"><input type="radio" name="sell-profit-target" value="否"> 是否到达预设止盈目标：否</label>
+                </div>
+                <input type="text" class="form-input" id="sell-logic-fulfilled" placeholder="逻辑是否兑现完毕">
+            </div>
+            <div class="form-row">
+                <label class="form-label">情况2：止损/逻辑破坏卖出</label>
+                <div class="radio-group">
+                    <label class="radio-item"><input type="radio" name="sell-stop-loss" value="是"> 是否跌破预设止损线：是</label>
+                    <label class="radio-item"><input type="radio" name="sell-stop-loss" value="否"> 是否跌破预设止损线：否</label>
+                </div>
+                <input type="text" class="form-input" id="sell-logic-disappear" placeholder="①原有上涨逻辑消失点">
+                <input type="text" class="form-input" id="sell-irreversible-negative" placeholder="②个股/行业出现不可逆利空">
+            </div>
+
+            <div class="section-title">三、情绪自查 <span class="required">*必须确认</span></div>
+            <div class="checkbox-group">
+                <label class="checkbox-item"><input type="checkbox" name="sell-emotion" value="1" checked> 短期大跌恐慌，害怕继续下跌无脑割肉</label>
+                <label class="checkbox-item"><input type="checkbox" name="sell-emotion" value="2" checked> 小幅回撤，承受不住波动急于卖出</label>
+                <label class="checkbox-item"><input type="checkbox" name="sell-emotion" value="3" checked> 小幅盈利，拿不住一点利润就跑路</label>
+                <label class="checkbox-item"><input type="checkbox" name="sell-emotion" value="4" checked> 看到其他股票大涨，想换股操作</label>
+            </div>
+            <div class="form-row" style="margin-top: 16px;">
+                <label class="form-label"><span class="required">*</span>确认以上情绪自查项我均已仔细阅读并确认无问题：</label>
+                <div class="radio-group">
+                    <label class="radio-item"><input type="radio" name="sell-emotion-confirm" value="确认无问题"> 确认无问题</label>
+                    <label class="radio-item"><input type="radio" name="sell-emotion-confirm" value="有问题需重新评估"> 有问题需重新评估</label>
+                </div>
+            </div>
+
+            <div class="section-title">四、后续预案</div>
+            <div class="form-row">
+                <label class="form-label">1. 卖出后是否立刻换其他个股买入</label>
+                <div class="radio-group">
+                    <label class="radio-item"><input type="radio" name="sell-switch" value="是"> 是</label>
+                    <label class="radio-item"><input type="radio" name="sell-switch" value="否"> 否</label>
+                </div>
+            </div>
+            <div class="form-row">
+                <label class="form-label">2. 后续重新买回的条件</label>
+                <input type="text" class="form-input" id="sell-buy-back-condition" placeholder="请输入条件">
+            </div>
+
+            <div class="btn-group">
+                <button class="btn submit" onclick="submitSellForm()">提交审核</button>
+                <button class="btn cancel" onclick="hideAll()">取消</button>
+            </div>
+        </div>
+
+        <!-- 交易记录列表 -->
+        <div class="records-list" id="records-list">
+            <h2 style="color: #333; margin-bottom: 20px;">交易记录</h2>
+            <div id="records-container"></div>
+        </div>
+
+        <!-- 模板配置 -->
+        <div class="template-container" id="template-container">
+            <h2 style="color: #333; margin-bottom: 20px;">模板配置</h2>
+            <div class="template-tabs">
+                <button class="template-tab active" onclick="switchTemplate('buy')">买入模板</button>
+                <button class="template-tab" onclick="switchTemplate('sell')">卖出模板</button>
+            </div>
+            <textarea class="template-textarea" id="template-content"></textarea>
+            <div class="btn-group">
+                <button class="btn cancel" onclick="resetTemplate()">恢复默认</button>
+                <button class="btn submit" onclick="saveTemplate()">保存模板</button>
+                <button class="btn cancel" onclick="hideAll()">返回</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 详情弹窗 -->
+    <div class="modal" id="detail-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title" id="modal-title"></span>
+                <span class="modal-close" onclick="closeModal()">&times;</span>
+            </div>
+            <pre id="modal-content"></pre>
+        </div>
+    </div>
+
+    <!-- 审核弹窗 -->
+    <div class="modal" id="review-modal">
+        <div class="modal-content" style="width: 90%; max-width: 400px;">
+            <div class="modal-header">
+                <span class="modal-title" id="review-title">最终审核</span>
+                <span class="modal-close" onclick="closeReviewModal()">&times;</span>
+            </div>
+            <div id="review-content">
+                <div class="section-title" style="margin-top: 0;">最终审核结论</div>
+                <div class="form-row">
+                    <label class="form-label">1. 以上所有条目全部如实填写完成</label>
+                    <div class="radio-group">
+                        <label class="radio-item"><input type="radio" name="review-filled" value="是"> 是</label>
+                        <label class="radio-item"><input type="radio" name="review-filled" value="否"> 否</label>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <label class="form-label"><span class="required">*</span>2. 综合判断</label>
+                    <div class="radio-group" id="review-conclusion-group">
+                        <!-- 动态生成选项 -->
+                    </div>
+                </div>
+                <div class="btn-group" style="margin-top: 20px;">
+                    <button class="btn cancel" onclick="closeReviewModal()">取消</button>
+                    <button class="btn submit" onclick="submitReview()">确认审核</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast提示 -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        let records = [];
+        let currentTemplate = 'buy';
+
+        const BUY_TEMPLATE = `一、基础信息
+1. 标的名称/代码：
+2. 当前总账户总资产：
+3. 本次买入金额：
+4. 本次买入后，该个股占总仓位比例：
+5. 本次操作类型：首次建仓 / 加仓 / 做T
+
+二、买入核心逻辑
+1. 支撑上涨3条核心理由：
+①
+②
+③
+2. 本次持仓周期规划：短线（1个月内）/中线（1-6个月）/长线（1年以上）
+
+三、风险测算
+1. 单只个股最大容忍亏损比例：____%
+2. 硬性止损价格：____元
+3. 3个潜在重大利空：
+①
+②
+③
+4. 极端情况评估：如果跌到止损位，这笔亏损会不会影响日常生活、睡眠心态？□会 □不会
+
+四、仓位约束
+1. 单只个股总仓位上限：≤15%
+2. 全仓短线投机个股总仓位上限：≤20%
+3. 账户整体浮亏超8%，是否执行加仓？□是 □否
+
+五、止盈规划
+1. 第一止盈目标价：，到达减仓%
+2. 第二止盈目标价：____，到达清仓剩余筹码
+3. 中途上涨后心态失控追高预案：
+
+六、情绪自查
+□ 刚大涨，眼红追涨
+□ 连续亏损，急于回本加仓摊薄
+□ 刷短视频、股吧、群聊听别人推荐
+□ 熬夜、烦躁、焦虑、心态浮躁时操作
+□ 短期连续盈利，自我膨胀想重仓梭哈
+□ 急于快速赚钱，追求短期暴利
+□ 害怕踏空，不分析逻辑直接买入
+
+七、最终审核结论
+1. 以上所有条目全部如实填写完成：□是 □否
+2. 综合判断：□执行本次下单 □放弃本次操作
+（注：提交后需等待1小时，方可进行第7步审核生效）
+日期：`;
+
+        const SELL_TEMPLATE = `一、基础信息
+1. 标的名称/代码：
+2. 当前持仓成本：
+3. 当前浮盈/浮亏：
+4. 卖出比例：部分减仓 / 全部清仓
+
+二、卖出核心依据
+情况1：止盈卖出
+1. 是否到达预设止盈目标：□是 □否
+2. 逻辑是否兑现完毕：
+
+情况2：止损/逻辑破坏卖出
+1. 是否跌破预设止损线：□是 □否
+2. 当初买入逻辑是否彻底失效：
+①原有上涨逻辑消失点：
+②个股/行业出现不可逆利空：
+
+三、情绪自查
+□ 短期大跌恐慌，害怕继续下跌无脑割肉
+□ 小幅回撤，承受不住波动急于卖出
+□ 小幅盈利，拿不住一点利润就跑路
+□ 看到其他股票大涨，想换股操作
+
+四、后续预案
+1. 卖出后是否立刻换其他个股买入：□是 □否
+2. 后续重新买回的条件：
+
+五、最终结论
+综合判断：□正常执行卖出 □暂缓操作，隔日再评估
+（注：提交后需等待1小时，方可进行审核生效）
+日期：`;
+
+        function calculatePositionRatio() {
+            const totalAssets = parseFloat(document.getElementById('buy-total-assets').value);
+            const buyAmount = parseFloat(document.getElementById('buy-amount').value);
+            const ratioInput = document.getElementById('buy-position-ratio');
+            
+            if (!isNaN(totalAssets) && !isNaN(buyAmount) && totalAssets > 0) {
+                const ratio = (buyAmount / totalAssets * 100).toFixed(2);
+                ratioInput.value = ratio + '%';
+                
+                if (parseFloat(ratio) > 10) {
+                    ratioInput.style.color = '#dc3545';
+                    ratioInput.style.fontWeight = 'bold';
+                } else {
+                    ratioInput.style.color = '#155724';
+                    ratioInput.style.fontWeight = 'bold';
+                }
+            } else {
+                ratioInput.value = '';
+                ratioInput.style.color = '';
+                ratioInput.style.fontWeight = '';
+            }
+        }
+
+        function calculateVolatilityValue() {
+            const buyAmount = parseFloat(document.getElementById('buy-amount').value);
+            const volatility = parseFloat(document.getElementById('buy-volatility').value);
+            const valueInput = document.getElementById('buy-volatility-value');
+            
+            if (!isNaN(buyAmount) && !isNaN(volatility) && buyAmount > 0 && volatility >= 0) {
+                const value = (buyAmount * volatility / 100).toFixed(2);
+                valueInput.value = '¥' + value;
+            } else {
+                valueInput.value = '';
+            }
+        }
+
+        function showBuyForm() {
+            hideAll();
+            document.getElementById('buy-form').style.display = 'block';
+        }
+
+        function showSellForm() {
+            hideAll();
+            document.getElementById('sell-form').style.display = 'block';
+        }
+
+        function showRecords() {
+            hideAll();
+            document.getElementById('records-list').style.display = 'block';
+            renderRecords();
+        }
+
+        function showTemplate() {
+            hideAll();
+            document.getElementById('template-container').style.display = 'block';
+            loadTemplate();
+        }
+
+        function hideAll() {
+            document.getElementById('buy-form').style.display = 'none';
+            document.getElementById('sell-form').style.display = 'none';
+            document.getElementById('template-container').style.display = 'none';
+            document.getElementById('records-list').style.display = 'block';
+            renderRecords();
+        }
+
+        function submitBuyForm() {
+            // 基础信息校验
+            if (!document.getElementById('buy-stock-name').value.trim()) {
+                showToast('请填写股票名称');
+                return;
+            }
+            if (!document.getElementById('buy-total-assets').value) {
+                showToast('请填写总账户总资产');
+                return;
+            }
+            if (!document.getElementById('buy-amount').value) {
+                showToast('请填写本次买入金额');
+                return;
+            }
+            const ratio = document.getElementById('buy-position-ratio').value;
+            if (!ratio) {
+                showToast('请先填写总资产和买入金额以计算仓位比例');
+                return;
+            }
+            if (!document.getElementById('buy-volatility').value) {
+                showToast('请填写股票波动率');
+                return;
+            }
+            if (!document.getElementById('buy-volatility-value').value) {
+                showToast('请先填写买入金额和波动率以计算最大波动价值');
+                return;
+            }
+            if (!document.querySelector('input[name="buy-operation"]:checked')) {
+                showToast('请选择本次操作类型');
+                return;
+            }
+
+            const ratioValue = parseFloat(ratio);
+            if (ratioValue > 15) {
+                showToast('仓位超限（超过15%），取消交易');
+                return;
+            }
+
+            // 核心逻辑校验
+            if (!document.getElementById('buy-reason1').value.trim()) {
+                showToast('请填写支撑上涨理由①');
+                return;
+            }
+            if (!document.getElementById('buy-reason2').value.trim()) {
+                showToast('请填写支撑上涨理由②');
+                return;
+            }
+            if (!document.getElementById('buy-reason3').value.trim()) {
+                showToast('请填写支撑上涨理由③');
+                return;
+            }
+            if (!document.querySelector('input[name="buy-cycle"]:checked')) {
+                showToast('请选择持仓周期规划');
+                return;
+            }
+
+            // 风险测算校验
+            if (!document.getElementById('buy-max-loss').value) {
+                showToast('请填写最大容忍亏损比例');
+                return;
+            }
+            if (!document.getElementById('buy-stop-price').value.trim()) {
+                showToast('请填写硬性止损价格');
+                return;
+            }
+            if (!document.getElementById('buy-risk1').value.trim()) {
+                showToast('请填写潜在重大利空①');
+                return;
+            }
+            if (!document.getElementById('buy-risk2').value.trim()) {
+                showToast('请填写潜在重大利空②');
+                return;
+            }
+            if (!document.getElementById('buy-risk3').value.trim()) {
+                showToast('请填写潜在重大利空③');
+                return;
+            }
+            if (!document.querySelector('input[name="buy-extreme"]:checked')) {
+                showToast('请选择极端情况评估');
+                return;
+            }
+
+            const extremeYes = document.querySelector('input[name="buy-extreme"][value="会"]');
+            if (extremeYes && extremeYes.checked) {
+                showToast('极端情况评估选择"会"，请放弃本次操作');
+                return;
+            }
+
+            // 仓位约束校验
+            if (!document.querySelector('input[name="buy-position-add"]:checked')) {
+                showToast('请选择是否执行加仓');
+                return;
+            }
+
+            // 止盈规划校验
+            if (!document.getElementById('buy-first-target').value.trim()) {
+                showToast('请填写第一止盈目标价');
+                return;
+            }
+            if (!document.getElementById('buy-first-ratio').value) {
+                showToast('请填写第一止盈减仓比例');
+                return;
+            }
+            if (!document.getElementById('buy-second-target').value.trim()) {
+                showToast('请填写第二止盈目标价');
+                return;
+            }
+            if (!document.getElementById('buy-chase-plan').value.trim()) {
+                showToast('请填写追高预案');
+                return;
+            }
+
+            // 情绪自查校验
+            const emotionChecked = document.querySelectorAll('input[name="buy-emotion"]:checked').length > 0;
+            if (emotionChecked) {
+                showToast('情绪自查未通过，取消交易');
+                return;
+            }
+
+            const emotionConfirm = document.querySelector('input[name="buy-emotion-confirm"]:checked');
+            if (!emotionConfirm || emotionConfirm.value !== '确认无问题') {
+                showToast('请确认情绪自查无问题');
+                return;
+            }
+
+            const record = {
+                id: Date.now(),
+                type: '买入',
+                stockName: document.getElementById('buy-stock-name').value,
+                fillTime: new Date(),
+                status: 'pending', // pending: 待生效, effective: 生效, voided: 作废
+                volatilityValue: document.getElementById('buy-volatility-value').value,
+                content: generateBuyContent()
+            };
+
+            records.unshift(record);
+            showToast('记录已保存');
+            hideAll();
+        }
+
+        function generateBuyContent() {
+            return `一、基础信息
+1. 标的名称：${document.getElementById('buy-stock-name').value}
+2. 当前总账户总资产：${document.getElementById('buy-total-assets').value}
+3. 本次买入金额：${document.getElementById('buy-amount').value}
+4. 本次买入后，该个股占总仓位比例：${document.getElementById('buy-position-ratio').value}
+5. 股票波动率：${document.getElementById('buy-volatility').value}%
+6. 最大波动价值：${document.getElementById('buy-volatility-value').value}
+7. 本次操作类型：${document.querySelector('input[name="buy-operation"]:checked')?.value || ''}
+
+二、买入核心逻辑
+1. 支撑上涨3条核心理由：
+① ${document.getElementById('buy-reason1').value}
+② ${document.getElementById('buy-reason2').value}
+③ ${document.getElementById('buy-reason3').value}
+2. 本次持仓周期规划：${document.querySelector('input[name="buy-cycle"]:checked')?.value || ''}
+
+三、风险测算
+1. 单只个股最大容忍亏损比例：${document.getElementById('buy-max-loss').value}%
+2. 硬性止损价格：${document.getElementById('buy-stop-price').value}元
+3. 3个潜在重大利空：
+① ${document.getElementById('buy-risk1').value}
+② ${document.getElementById('buy-risk2').value}
+③ ${document.getElementById('buy-risk3').value}
+4. 极端情况评估：${document.querySelector('input[name="buy-extreme"]:checked')?.value || ''}
+
+四、仓位约束
+1. 单只个股总仓位上限：≤15%
+2. 全仓短线投机个股总仓位上限：≤20%
+3. 账户整体浮亏超8%，是否执行加仓？${document.querySelector('input[name="buy-position-add"]:checked')?.value || ''}
+
+五、止盈规划
+1. 第一止盈目标价：${document.getElementById('buy-first-target').value}，到达减仓${document.getElementById('buy-first-ratio').value}%
+2. 第二止盈目标价：${document.getElementById('buy-second-target').value}，到达清仓剩余筹码
+3. 中途上涨后心态失控追高预案：${document.getElementById('buy-chase-plan').value}
+
+六、情绪自查（已确认无问题）
+
+【提交时间】${new Date().toLocaleString()}
+【状态】待生效（需1小时后进行最终审核）`;
+        }
+
+        function submitSellForm() {
+            // 基础信息校验
+            if (!document.getElementById('sell-stock-name').value.trim()) {
+                showToast('请填写股票名称');
+                return;
+            }
+            if (!document.getElementById('sell-cost').value.trim()) {
+                showToast('请填写当前持仓成本');
+                return;
+            }
+            if (!document.getElementById('sell-profit-loss').value.trim()) {
+                showToast('请填写当前浮盈/浮亏');
+                return;
+            }
+            if (!document.querySelector('input[name="sell-ratio"]:checked')) {
+                showToast('请选择卖出比例');
+                return;
+            }
+
+            // 卖出核心依据校验
+            if (!document.querySelector('input[name="sell-profit-target"]:checked')) {
+                showToast('请选择是否到达预设止盈目标');
+                return;
+            }
+            if (!document.getElementById('sell-logic-fulfilled').value.trim()) {
+                showToast('请填写逻辑是否兑现完毕');
+                return;
+            }
+            if (!document.querySelector('input[name="sell-stop-loss"]:checked')) {
+                showToast('请选择是否跌破预设止损线');
+                return;
+            }
+            if (!document.getElementById('sell-logic-disappear').value.trim()) {
+                showToast('请填写原有上涨逻辑消失点');
+                return;
+            }
+            if (!document.getElementById('sell-irreversible-negative').value.trim()) {
+                showToast('请填写个股/行业不可逆利空');
+                return;
+            }
+
+            // 情绪自查校验
+            const emotionChecked = document.querySelectorAll('input[name="sell-emotion"]:checked').length > 0;
+            if (emotionChecked) {
+                showToast('情绪自查未通过，请冷静1小时后再决策');
+                return;
+            }
+
+            const emotionConfirm = document.querySelector('input[name="sell-emotion-confirm"]:checked');
+            if (!emotionConfirm || emotionConfirm.value !== '确认无问题') {
+                showToast('请确认情绪自查无问题');
+                return;
+            }
+
+            // 后续预案校验
+            if (!document.querySelector('input[name="sell-switch"]:checked')) {
+                showToast('请选择卖出后是否换股');
+                return;
+            }
+            if (!document.getElementById('sell-buy-back-condition').value.trim()) {
+                showToast('请填写后续重新买回的条件');
+                return;
+            }
+
+            const record = {
+                id: Date.now(),
+                type: '卖出',
+                stockName: document.getElementById('sell-stock-name').value,
+                fillTime: new Date(),
+                status: 'pending', // pending: 待生效, effective: 生效, voided: 作废
+                content: generateSellContent()
+            };
+
+            records.unshift(record);
+            showToast('记录已保存');
+            hideAll();
+        }
+
+        function generateSellContent() {
+            return `一、基础信息
+1. 标的名称：${document.getElementById('sell-stock-name').value}
+2. 当前持仓成本：${document.getElementById('sell-cost').value}
+3. 当前浮盈/浮亏：${document.getElementById('sell-profit-loss').value}
+4. 卖出比例：${document.querySelector('input[name="sell-ratio"]:checked')?.value || ''}
+
+二、卖出核心依据
+情况1：止盈卖出
+1. 是否到达预设止盈目标：${document.querySelector('input[name="sell-profit-target"]:checked')?.value || ''}
+2. 逻辑是否兑现完毕：${document.getElementById('sell-logic-fulfilled').value}
+
+情况2：止损/逻辑破坏卖出
+1. 是否跌破预设止损线：${document.querySelector('input[name="sell-stop-loss"]:checked')?.value || ''}
+2. 当初买入逻辑是否彻底失效：
+①原有上涨逻辑消失点：${document.getElementById('sell-logic-disappear').value}
+②个股/行业出现不可逆利空：${document.getElementById('sell-irreversible-negative').value}
+
+三、情绪自查（已确认无问题）
+
+四、后续预案
+1. 卖出后是否立刻换其他个股买入：${document.querySelector('input[name="sell-switch"]:checked')?.value || ''}
+2. 后续重新买回的条件：${document.getElementById('sell-buy-back-condition').value}
+
+【提交时间】${new Date().toLocaleString()}
+【状态】待生效（需1小时后进行最终审核）`;
+        }
+
+        function renderRecords() {
+            const container = document.getElementById('records-container');
+            if (records.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">暂无交易记录</p>';
+                return;
+            }
+
+            const now = new Date();
+            container.innerHTML = records.map(record => {
+                const diff = now.getTime() - record.fillTime.getTime();
+                const canReview = diff >= 3600000 && record.status === 'pending'; // 1小时后才能审核
+                
+                let statusText, statusClass;
+                if (record.status === 'pending') {
+                    statusText = '待生效';
+                    statusClass = 'pending';
+                } else if (record.status === 'effective') {
+                    statusText = '生效';
+                    statusClass = 'effective';
+                } else {
+                    statusText = '已作废';
+                    statusClass = 'voided';
+                }
+                
+                const remainingTime = record.status === 'pending' && !canReview 
+                    ? `（剩余${Math.ceil((3600000 - diff) / 60000)}分钟）` 
+                    : '';
+                
+                return `<div class="record-item">
+                    <div class="record-header">
+                        <span class="record-type">${record.type}</span>
+                        <span class="record-status ${statusClass}">${statusText}${remainingTime}</span>
+                    </div>
+                    <div class="record-stock">${record.stockName}</div>
+                    <div class="record-time">${formatTime(record.fillTime)}</div>
+                    ${record.volatilityValue ? `<div class="record-volatility">最大波动价值：${record.volatilityValue}</div>` : ''}
+                    ${record.conclusion ? `<div class="record-conclusion">最终结论：${record.conclusion}</div>` : ''}
+                    <div class="record-actions">
+                        <button class="record-btn view" onclick="showDetail(${record.id})">查看详情</button>
+                        ${record.status === 'pending' ? `
+                            <button class="record-btn review" onclick="showReviewModal(${record.id})" ${!canReview ? 'disabled' : ''}>${canReview ? '审核生效' : '等待审核'}</button>
+                            <button class="record-btn void" onclick="voidRecord(${record.id})">作废</button>
+                        ` : ''}
+                        ${record.status === 'effective' ? `
+                            <button class="record-btn void" onclick="voidRecord(${record.id})">作废</button>
+                        ` : ''}
+                        <button class="record-btn delete" onclick="deleteRecord(${record.id})">删除</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function formatTime(date) {
+            const now = new Date();
+            const diff = now.getTime() - date.getTime();
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            
+            if (days === 0) {
+                return '今天 ' + date.toLocaleTimeString('zh-CN', {hour: '2-digit', minute: '2-digit'});
+            } else if (days === 1) {
+                return '昨天 ' + date.toLocaleTimeString('zh-CN', {hour: '2-digit', minute: '2-digit'});
+            } else {
+                return date.toLocaleString('zh-CN');
+            }
+        }
+
+        function showDetail(id) {
+            const record = records.find(r => r.id === id);
+            if (!record) return;
+            
+            document.getElementById('modal-title').textContent = record.type + '审核记录';
+            document.getElementById('modal-content').textContent = record.content;
+            document.getElementById('detail-modal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('detail-modal').style.display = 'none';
+        }
+
+        function deleteRecord(id) {
+            if (confirm('确定要删除这条记录吗？')) {
+                records = records.filter(r => r.id !== id);
+                renderRecords();
+                showToast('记录已删除');
+            }
+        }
+
+        let currentReviewId = null;
+
+        function showReviewModal(id) {
+            const record = records.find(r => r.id === id);
+            if (!record) return;
+            
+            const diff = new Date().getTime() - record.fillTime.getTime();
+            if (diff < 3600000) {
+                const remaining = Math.ceil((3600000 - diff) / 60000);
+                showToast(`还需等待${remaining}分钟才能审核`);
+                return;
+            }
+            
+            currentReviewId = id;
+            
+            // 动态生成综合判断选项
+            const group = document.getElementById('review-conclusion-group');
+            if (record.type === '买入') {
+                group.innerHTML = `
+                    <label class="radio-item"><input type="radio" name="review-conclusion" value="执行本次下单"> 执行本次下单</label>
+                    <label class="radio-item"><input type="radio" name="review-conclusion" value="放弃本次操作"> 放弃本次操作</label>
+                `;
+            } else {
+                group.innerHTML = `
+                    <label class="radio-item"><input type="radio" name="review-conclusion" value="正常执行卖出"> 正常执行卖出</label>
+                    <label class="radio-item"><input type="radio" name="review-conclusion" value="暂缓操作"> 暂缓操作，隔日再评估</label>
+                `;
+            }
+            
+            // 重置表单
+            document.querySelectorAll('input[name="review-filled"]').forEach(r => r.checked = false);
+            document.querySelectorAll('input[name="review-conclusion"]').forEach(r => r.checked = false);
+            
+            document.getElementById('review-modal').style.display = 'flex';
+        }
+
+        function closeReviewModal() {
+            document.getElementById('review-modal').style.display = 'none';
+            currentReviewId = null;
+        }
+
+        function submitReview() {
+            const filled = document.querySelector('input[name="review-filled"]:checked');
+            const conclusion = document.querySelector('input[name="review-conclusion"]:checked');
+            
+            if (!filled) {
+                showToast('请确认所有条目已如实填写');
+                return;
+            }
+            
+            if (!conclusion) {
+                showToast('请选择综合判断结论');
+                return;
+            }
+            
+            const record = records.find(r => r.id === currentReviewId);
+            if (!record) return;
+            
+            record.conclusion = conclusion.value;
+            record.status = 'effective';
+            record.content = record.content.replace('【状态】待生效（需1小时后进行最终审核）', `【状态】生效\n\n七、最终审核结论\n1. 以上所有条目全部如实填写完成：${filled.value}\n2. 综合判断：${conclusion.value}`);
+            
+            closeReviewModal();
+            renderRecords();
+            showToast('审核通过，已生效');
+        }
+
+        function voidRecord(id) {
+            const record = records.find(r => r.id === id);
+            if (!record) return;
+            
+            if (confirm('确定要作废此交易记录吗？')) {
+                record.status = 'voided';
+                record.content = record.content.replace(/【状态】.*/, '【状态】已作废');
+                renderRecords();
+                showToast('记录已作废');
+            }
+        }
+
+        function simulateTimePass() {
+            records.forEach(record => {
+                if (record.status === 'pending') {
+                    record.fillTime = new Date(Date.now() - 3601000); // 设置为60分钟1秒前
+                }
+            });
+            showToast('已模拟60分钟过去，待生效记录现在可以审核');
+            renderRecords();
+        }
+
+        function switchTemplate(type) {
+            currentTemplate = type;
+            document.querySelectorAll('.template-tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            loadTemplate();
+        }
+
+        function loadTemplate() {
+            const textarea = document.getElementById('template-content');
+            textarea.value = currentTemplate === 'buy' ? BUY_TEMPLATE : SELL_TEMPLATE;
+        }
+
+        function resetTemplate() {
+            loadTemplate();
+            showToast('已恢复默认模板');
+        }
+
+        function saveTemplate() {
+            showToast('模板已保存');
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.display = 'none', 2000);
+        }
+
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('detail-modal')) {
+                closeModal();
+            }
+        }
+
+        // 定时刷新记录列表，更新剩余时间
+        setInterval(() => {
+            if (document.getElementById('records-list').style.display === 'block') {
+                renderRecords();
+            }
+        }, 60000); // 每分钟刷新一次
+
+        // 页面加载完成后默认显示交易记录列表
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('records-list').style.display = 'block';
+            renderRecords();
+        });
+    </script>
+</body>
+</html>
