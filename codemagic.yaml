@@ -5,12 +5,12 @@ workflows:
     environment:
       java: 17
     scripts:
-      - name: Set up Gradle
+      - name: Show Gradle version
         script: |
-          gradle wrapper --gradle-version 8.6
-          chmod +x gradlew
+          cat gradle/wrapper/gradle-wrapper.properties
       - name: Build debug APK
         script: |
-          ./gradlew assembleDebug
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
     artifacts:
       - app/build/outputs/**/*.apk
