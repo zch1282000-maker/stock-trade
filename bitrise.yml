@@ -1,0 +1,63 @@
+format_version: "11"
+default_step_lib_source: github.com/bitrise-io/bitrise-steplib
+
+project_type: android
+
+app:
+  envs:
+  - BITRISEIO_ANDROID_KEYSTORE_PASSWORD: ""
+    opts:
+      is_expand: false
+  - BITRISEIO_ANDROID_KEYSTORE_ALIAS: ""
+    opts:
+      is_expand: false
+  - BITRISEIO_ANDROID_KEYSTORE_ALIAS_PASSWORD: ""
+    opts:
+      is_expand: false
+
+trigger_map:
+- push_branch: main
+  workflow: primary
+- pull_request_source_branch: "*"
+  workflow: primary
+
+workflows:
+  primary:
+    steps:
+    - activate-ssh-key@4:
+        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+    - git-clone@8: {}
+    - cache-pull@2: {}
+    - android-build@1:
+        inputs:
+        - variant: debug
+        - module: app
+        - build_type: assembleDebug
+    - virtual-device-testing-android@1: {}
+    - cache-push@2: {}
+    - deploy-to-bitrise-io@2: {}
+    - gradle-runner@2:
+        inputs:
+        - gradle_task: assembleDebug
+        - gradle_file: "./app/build.gradle"
+    - sign-apk@1:
+        inputs:
+        - android_module: app
+        - android_app: "./app/build/outputs/apk/debug/app-debug.apk"
+        - keystore_url: ""
+        - keystore_password: ""
+        - keystore_alias: ""
+        - key_password: ""
+    - deploy-to-bitrise-io@2:
+        inputs:
+        - deploy_path: "./app/build/outputs/apk/debug/"
+
+  sign:
+    steps:
+    - sign-apk@1:
+        inputs:
+        - android_module: app
+        - keystore_url: ""
+        - keystore_password: ""
+        - keystore_alias: ""
+        - key_password: ""
