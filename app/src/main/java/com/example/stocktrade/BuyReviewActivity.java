@@ -139,9 +139,9 @@ public class BuyReviewActivity extends AppCompatActivity {
                 etPositionRatio.setText(String.format("%.2f", ratio));
                 
                 if (ratio > 10) {
-                    etPositionRatio.setTextColor(getResources().getColor(R.color.red));
+                    etPositionRatio.setTextColor(getResources().getColor(R.color.red_500));
                 } else {
-                    etPositionRatio.setTextColor(getResources().getColor(R.color.green));
+                    etPositionRatio.setTextColor(getResources().getColor(R.color.green_500));
                 }
             }
         } catch (Exception e) {

@@ -159,7 +159,7 @@ public class RecordDetailActivity extends AppCompatActivity {
                     break;
                 default:
                     statusText = "未知";
-                    statusColor = getResources().getColor(R.color.gray);
+                    statusColor = getResources().getColor(R.color.gray_600);
             }
             
             holder.tvStatus.setText(statusText);
